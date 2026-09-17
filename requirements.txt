@@ -3,5 +3,4 @@ requests
 polars
 datetime
 seaborn
-functools
 pandas
