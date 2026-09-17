@@ -87,23 +87,31 @@ if not Numberofy:
 if not rank:
 	st.stop()
 
-res = requests.get(f"https://api.inaturalist.org/v2/taxa/autocomplete?q={yes}&fields=name%2Cpreferred_common_name%2Crank", headers=header)
-if res.status_code != 200:
-	st.write(f"Error: {res.status_code}")
-results = res.json().get("results", [])
-taxon = results[0]
+try:
+	res = requests.get(f"https://api.inaturalist.org/v2/taxa/autocomplete?q={yes}&fields=name%2Cpreferred_common_name%2Crank", headers=header)
+	if res.status_code != 200:
+		st.write(f"Error: {res.status_code}")
+	results = res.json().get("results", [])
+	taxon = results[0]
+except:
+	st.write("Couldn't find that taxon")
+	st.stop()
 try:
 	our_name = taxon['preferred_common_name']
 except:
 	our_name = taxon['name']
 st.write(f"Selected taxon: {our_name}")
 
-res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&order_by=area&fields=display_name", headers=header)
-if res_place.status_code != 200:
-	st.write(f"Error: {res.status_code}")
-results_place = res_place.json().get("results", [])
-place = results_place[0]
-placename = place['display_name']
+try:
+	res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&order_by=area&fields=display_name", headers=header)
+	if res_place.status_code != 200:
+		st.write(f"Error: {res.status_code}")
+	results_place = res_place.json().get("results", [])
+	place = results_place[0]
+	placename = place['display_name']
+except:
+	st.write("Couldn't find that place")
+	st.stop()
 st.write(f"Selected place: {placename}")
 our_id = taxon['id']
 our_place = place['id']
@@ -406,7 +414,7 @@ date_ranges_1 = date_ranges[0:(dateindex)]
 date_ranges_2 = date_ranges[dateindex:]
 
 with ThreadPoolExecutor(max_workers=2) as executor:
-	if totalresults > 10000 or rank != "species":
+	if totalresults > (200*(Numberofy*30/4)) or rank != "species":
 		if Numberofy*30 < 60:
 			st.write(f"Estimated time: {Numberofy*30} seconds")
 		else:
@@ -592,7 +600,7 @@ labels = df_pd.columns[::2]
 
 reallabels = []
 
-if totalresults > 10000:
+if totalresults > (200*(Numberofy*30/4)):
 	for label in labels:
 		reallabels.append(label[7:])
 
