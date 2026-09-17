@@ -121,9 +121,12 @@ ourstart = f'{ourmonth}-{ourday}'
 dateindex = date_starts.index(ourstart)
 
 
+firsttry = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={our_place}&taxon_id={our_id}&d1={firstdate}&d2={today}&page=1&order=desc')
+totalresults = firsttry.json()['total_results']
 
-#Make sure it doesn't go too soon
-
+if totalresults == 0:
+	print("No such thing")
+	st.stop()
 
 
 
@@ -257,6 +260,104 @@ def find_species(taxon: int, place: int, start_md: str, end_md: str, start_year:
 		#torg = 2
 	
 	return specval2
+
+def find_observations(taxon: int, place: int, start: str, end: str):
+	big_specval = []
+	#time.sleep(1.5)
+	observation_df_large = pl.DataFrame()
+
+	page = 1
+	max_pages = 60
+	while page <= max_pages:
+		print(page)
+		response = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={place}&taxon_id={taxon}&d1={start}&d2={end}&per_page=200&page={page}&order=desc&order_by=observed_on&fields=species_guess%2Cobserved_on%2Ctaxon')
+		observations = response.json()['results']
+	
+
+		try:
+			observation_df = pl.DataFrame(observations, strict=False, infer_schema_length=None)
+			observation_df_large = pl.concat([observation_df_large, observation_df])
+				
+		except:
+			break
+		
+		
+		if len(observations) < 200:
+			break
+			
+		
+		page += 1
+		time.sleep(1)
+		
+		#print("done")
+	for row in range(observation_df_large.height):
+		newvalue = (observation_df_large.item(row, "observed_on")[5:])
+		observation_df_large[row, "observed_on"] = newvalue
+
+	observation_df_large = observation_df_large.sort('observed_on', descending=False)
+
+	with pl.Config(tbl_rows=-1, tbl_cols=-1):
+		print(observation_df_large)
+
+	df_grouped = observation_df_large.with_columns(
+    	group_id=pl.sum_horizontal(
+        	[(pl.col("observed_on") >= d).cast(pl.Int32) for d in date_starts]
+    	)
+	)
+
+	df_list = df_grouped.partition_by("group_id", include_key=True)
+
+	for x in range(1, len(date_starts)):
+		ourdf = df_list[x-1]
+		thisdate = ourdf.item(0,"group_id")
+		if thisdate!= x:
+			newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[x-1]}":float})
+			df_list.insert(x-1, newdf)
+
+	if df_list[-1].item(0,"group_id") != 24:
+		newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[-1]}":float})
+		df_list.append(newdf)
+
+
+	numm = 0
+
+	for observation_df_halfmonth in df_list:
+		try:
+			observation_df_halfmonth = observation_df_halfmonth.select(pl.col("taxon").struct.field("id"))
+			observation_specval = observation_df_halfmonth['id'].value_counts()
+			observation_specval = observation_specval.sort('count', descending=True)
+			specval = observation_specval.with_columns(((pl.col("count") / int(observation_specval["count"].sum()) * 100).round(2).alias(f"p_{date_starts[numm]}")))
+			specval2 = observation_specval.with_columns(((pl.col("count").alias(f"p_{date_starts[numm]}"))))
+			specval2 = specval2.select(["id", f"p_{date_starts[numm]}"])
+			specval = specval.select(["id", f"p_{date_starts[numm]}"])
+			big_specval.append(specval2)
+		except:
+			(big_specval.append(observation_df_halfmonth))
+		numm += 1
+	#observation_specval = observation_df_large.sort('count', descending=True)
+	
+			#print(observation_specval)
+			#sum_row_data = {"species_guess": "Total", "count": int(observation_specval["count"].sum())}
+			#sum_df = pl.DataFrame([sum_row_data])
+			#specval = pl.concat([observation_specval, sum_df])
+	#specval = observation_specval.with_columns(((pl.col("count") / int(observation_specval["count"].sum()) * 100).round(2).alias(f"p_{start}")))
+	#specval = observation_specval.with_columns(((pl.col("count") / int(observation_specval["count"].sum()) * 100).round(2).alias(f"p_{start}")))
+	#specval2 = observation_specval.with_columns(((pl.col("count").alias(f"p_{start}"))))
+	#specval2 = specval2.select(["id", f"p_{start}"])
+	#specval = specval.select(["id", f"p_{start}"])
+	
+	#print(specval)
+	#dfs.append(specval)
+			#percentage = specval.select(pl.col(f"p_{start}"))
+			#if torg == 1:
+				#print("torg!")
+				#final_counts = specval
+			#else:
+				#final_counts = final_counts.join(specval, on="species_guess", how="full", coalesce=True)
+				#final_counts = final_counts.with_columns(pl.coalesce([pl.col("species_guess"), pl.col("species_guess_right")]).alias("species_guess")).drop("species_guess_right")
+		#torg = 2
+	
+	return big_specval
 	
 	
 date_ranges = [
@@ -301,99 +402,90 @@ def stream_data_ca():
     
         
 st.write_stream(stream_data_ca())
-if Numberofy*30 < 60:
-	st.write(f"Estimated time: {Numberofy*30} seconds")
-else:
-	st.write(f"Estimated time: {Numberofy/2} minutes")
+
 
 date_ranges_1 = date_ranges[0:(dateindex)]
 date_ranges_2 = date_ranges[dateindex:]
 
 with ThreadPoolExecutor(max_workers=2) as executor:
-    futures = {
-        executor.submit(
-            find_species,
-            our_id,
-            our_place,
-            start_date,
-            end_date,
-            firstdate.year + 1,
-            today.year
-        ): (start_date, end_date)
-        for start_date, end_date in date_ranges_1
-    }
+	if totalresults > 10000 or rank != "species":
+		if Numberofy*30 < 60:
+			st.write(f"Estimated time: {Numberofy*30} seconds")
+		else:
+			st.write(f"Estimated time: {Numberofy/2} minutes")
+		futures = {
+			executor.submit(
+                find_species,
+                our_id,
+                our_place,
+                start_date,
+                end_date,
+                firstdate.year + 1,
+                today.year
+			): (start_date, end_date)
+			for start_date, end_date in date_ranges_1
+		}
 
-    for future in as_completed(futures):
-        start_date, end_date = futures[future]
+		for future in as_completed(futures):
+			start_date, end_date = futures[future]
+		
+			try:
+				result = future.result()
+				results.append({
+					"start_date": start_date,
+					"end_date": end_date,
+					"data": result
+				})
+				print(f"Finished {start_date} to {end_date}")
+		
+			except Exception as e:
+				print(f"Error for {start_date} to {end_date}: {e}")
+					
+		futures = {
+			executor.submit(
+				find_species,
+				our_id,
+				our_place,
+				start_date,
+				end_date,
+				firstdate.year,
+				today.year - 1
+			): (start_date, end_date)
+			for start_date, end_date in date_ranges_2
+		}
+		
+		for future in as_completed(futures):
+			start_date, end_date = futures[future]
+	
+			try:
+				result = future.result()
+				results.append({
+					"start_date": start_date,
+					"end_date": end_date,
+					"data": result
+				})
+				print(f"Finished {start_date} to {end_date}")
+	
+			except Exception as e:
+				print(f"Error for {start_date} to {end_date}: {e}")
 
-        try:
-            result = future.result()
-            results.append({
-                "start_date": start_date,
-                "end_date": end_date,
-                "data": result
-            })
-            st.write(f"Finished {start_date} to {end_date}")
+		results.sort(key=lambda x: date_ranges.index(
+    		(x["start_date"], x["end_date"])
+		))
 
-        except Exception as e:
-            st.write(f"Error for {start_date} to {end_date}: {e}")
-            
-    futures = {
-        executor.submit(
-            find_species,
-            our_id,
-            our_place,
-            start_date,
-            end_date,
-            firstdate.year,
-            today.year - 1
-        ): (start_date, end_date)
-        for start_date, end_date in date_ranges_2
-    }
+		for result in results:
+			dfs.append(result['data'])
+		combined_df = reduce(lambda left, right: left.join(right, on="id", how="full", coalesce=True), dfs)
+		combined_df = combined_df.fill_null(0)
+        
 
-    for future in as_completed(futures):
-        start_date, end_date = futures[future]
-
-        try:
-            result = future.result()
-            results.append({
-                "start_date": start_date,
-                "end_date": end_date,
-                "data": result
-            })
-            st.write(f"Finished {start_date} to {end_date}")
-
-        except Exception as e:
-            st.write(f"Error for {start_date} to {end_date}: {e}")
-
-#st.write(results)
-
-results.sort(key=lambda x: date_ranges.index(
-    (x["start_date"], x["end_date"])
-))
-
-#st.write(results)
-
-for result in results:
-	#st.write(result)
-	dfs.append(result['data'])
-
-
-#st.write(dfs)
-#for i in range(0, len(dfs)):
-#	final_counts = dfs[12].join(dfs[13], on="species_guess", how="full", coalesce=True)
-#st.write(final_counts)
-combined_df = reduce(lambda left, right: left.join(right, on="id", how="full", coalesce=True), dfs)
-combined_df = combined_df.fill_null(0)
-#combined_df = combined_df.drop("species_guess_right")
-#combined_df.write_csv(f"JL_{our_id}.csv", separator=",")
+	else: 
+		st.write(f"Estimated time: {ceiling(totalresults/200)} seconds")
+		result = find_observations(our_id, our_place, str(firstdate), str(today))
+		combined_df = reduce(lambda left, right: left.join(right, on="id", how="full", coalesce=True), result)
+		combined_df = combined_df.fill_null(0)
 
 
-#for obs in observations:
-	#st.write(obs)
-#	st.write(f"{obs['species_guess']} on {obs['observed_on']} at {obs['place_guess']}")
-
-#combined_df = combined_df.head(int(Numberofr))
 successes = 0
 combined_df = combined_df.with_columns(pl.col("id").cast(pl.String))
 combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
