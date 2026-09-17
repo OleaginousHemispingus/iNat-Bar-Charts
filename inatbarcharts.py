@@ -519,6 +519,7 @@ for x in range(0,ids.height):
 	
 	if ourrank != rank:
 		combined_df = combined_df.remove(pl.col("id") == str(yes))
+		successes -= 1
 	#	if rank == 'genus':
 	#		taxa = taxon['name'].split(" ")[0]
 	#		break
