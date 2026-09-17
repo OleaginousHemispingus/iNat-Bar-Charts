@@ -592,8 +592,14 @@ positions = range(0, len(df_pd.columns), 2)
 labels = df_pd.columns[::2]
 
 reallabels = []
-for label in labels:
-	reallabels.append(label[7:])
+
+if totalresults > 10000:
+	for label in labels:
+		reallabels.append(label[7:])
+
+else:
+	for label in labels:
+		reallabels.append(label[1:])
 	
 ylabs = df_pd.index.tolist()
 ypos = range(0,len(ylabs))
