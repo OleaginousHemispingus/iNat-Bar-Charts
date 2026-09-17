@@ -599,7 +599,7 @@ if totalresults > 10000:
 
 else:
 	for label in labels:
-		reallabels.append(label[1:])
+		reallabels.append(label[2:])
 	
 ylabs = df_pd.index.tolist()
 ypos = range(0,len(ylabs))
