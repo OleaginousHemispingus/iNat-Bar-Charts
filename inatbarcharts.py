@@ -64,7 +64,7 @@ Numberofr = int(Numberofr)
 
 torg = 1
 
-Ranks = ["species", "genus"]
+Ranks = ["species", "genus", "family", "order"]
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
@@ -423,33 +423,32 @@ for x in range(0,ids.height):
 		
 	ourrank = taxon['rank']
 	
-	taxa = "nothing"
+	#taxa = "nothing"
 	
-	while ourrank != rank:
-		if rank == 'genus':
-			taxa = taxon['name'].split(" ")[0]
-			break
-		if len(taxon['ancestry'].split("/")[-1]) == 1:
-			combined_df = combined_df.remove(pl.col("id") == str(yes))
-			break
+	#while ourrank != rank:
+	#	if rank == 'genus':
+	#		taxa = taxon['name'].split(" ")[0]
+	#		break
+	#	if len(taxon['ancestry'].split("/")[-1]) == 1:
+	#		combined_df = combined_df.remove(pl.col("id") == str(yes))
+	#		break
 
-		ancestor = taxon['ancestry'].split("/")[-1]
-		time.sleep(1)
-		tryagain = requests.get(f"https://api.inaturalist.org/v2/taxa?taxon_id={ancestor}&fields=preferred_common_name%2Cname%2Crank%2Cancestry", headers=header)
-		results = tryagain.json().get("results", [])
-		tryagaintaxon = results[0]
-		if ourrank == "complex" and rank == "species":
-			ourrank = "species"
-		else:
-			ourrank = tryagaintaxon['rank']
-			taxon = tryagaintaxon
+	#	ancestor = taxon['ancestry'].split("/")[-1]
+	#	time.sleep(1)
+	#	tryagain = requests.get(f"https://api.inaturalist.org/v2/taxa?taxon_id={ancestor}&fields=preferred_common_name%2Cname%2Crank%2Cancestry", headers=header)
+	#	results = tryagain.json().get("results", [])
+	#	tryagaintaxon = results[0]
+	#	if ourrank == "complex" and rank == "species":
+	#		ourrank = "species"
+	#	else:
+	#		ourrank = tryagaintaxon['rank']
+	#		taxon = tryagaintaxon
 		#combined_df = combined_df.remove(pl.col("id") == str(yes))
 		
-	if taxa == "nothing":
-		try:
-			taxa = (taxon['preferred_common_name'])
-		except:
-			taxa = (taxon['name'])
+	if rank == "species":
+		taxa = (taxon['preferred_common_name'])
+	else:
+		taxa = (taxon['name'])
 			
 	combined_df = combined_df.with_columns(id = pl.when(pl.col("id") == yes).then(pl.lit(taxa)).otherwise(pl.col("id")))
 	successes += 1
