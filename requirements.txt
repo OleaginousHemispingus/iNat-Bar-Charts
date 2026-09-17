@@ -5,5 +5,4 @@ datetime
 seaborn
 functools
 pandas
-concurrent.futures
 dateutil.relativedelta
