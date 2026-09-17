@@ -517,7 +517,8 @@ for x in range(0,ids.height):
 	
 	#taxa = "nothing"
 	
-	#while ourrank != rank:
+	if ourrank != rank:
+		combined_df = combined_df.remove(pl.col("id") == str(yes))
 	#	if rank == 'genus':
 	#		taxa = taxon['name'].split(" ")[0]
 	#		break
