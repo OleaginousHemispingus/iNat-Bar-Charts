@@ -65,12 +65,12 @@ Numberofr = int(Numberofr)
 
 torg = 1
 
-#Ranks = ["species", "genus", "tribe", "subfamily", "family", "superfamily", "suborder", "order", "superorder", "class"]
+Ranks = ["species", "genus", "tribe", "subfamily", "family", "superfamily", "suborder", "order", "superorder", "class"]
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
-#rank = st.selectbox("What rank I am looking for: ", options = Ranks)
-rank="species"
+rank = st.selectbox("What rank I am looking for: ", options = Ranks)
+#rank="species"
 
 if not yes:
 	st.stop()
