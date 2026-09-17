@@ -17,7 +17,7 @@ from dateutil.relativedelta import relativedelta
 import streamlit as st
 
 header = {
-    "User-Agent": "Checklistinator: iNat Bar Chart(iNat username: ospreyj; joshua.lu.johnson@gmail.com)"
+    "User-Agent": "Checklistinator: iNat Bar Chart(https://inatbarcharts.streamlit.app/; iNat username: ospreyj; joshua.lu.johnson@gmail.com)"
 }
 
 all_obs = []
@@ -64,13 +64,11 @@ Numberofr = int(Numberofr)
 
 torg = 1
 
-#Ranks = ["species", "genus"]
+Ranks = ["species", "genus"]
 
-query = st.text_input("Enter a place (format for a state is [State, Country code], for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
+query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
-#rank = st.selectbox("What rank I am looking for: ", options = Ranks, index=None)
-
-rank = "species"
+rank = st.selectbox("What rank I am looking for: ", options = Ranks, index=None)
 
 if not yes:
 	st.stop()
@@ -164,7 +162,7 @@ def find_species(taxon: int, place: int, start_md: str, end_md: str, start_year:
 			
 			
 			
-			response = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={place}&taxon_id={taxon}&d1={start.isoformat()}&d2={end.isoformat()}&page={page}&order=desc', headers=header)
+			response = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?captive=false&place_id={place}&rank={rank}&taxon_id={taxon}&d1={start.isoformat()}&d2={end.isoformat()}&page={page}&order=desc', headers=header)
 			if response.status_code != 200:
 				st.write(f"Error: {response.status_code}")
 			
