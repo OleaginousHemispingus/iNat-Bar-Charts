@@ -126,7 +126,7 @@ firsttry = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={
 totalresults = firsttry.json()['total_results']
 
 if totalresults == 0:
-	print("No such thing")
+	st.write("No such thing")
 	st.stop()
 
 
@@ -270,7 +270,6 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 	page = 1
 	max_pages = 60
 	while page <= max_pages:
-		print(page)
 		response = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={place}&taxon_id={taxon}&d1={start}&d2={end}&per_page=200&page={page}&order=desc&order_by=observed_on&fields=species_guess%2Cobserved_on%2Ctaxon')
 		observations = response.json()['results']
 	
@@ -296,9 +295,6 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 		observation_df_large[row, "observed_on"] = newvalue
 
 	observation_df_large = observation_df_large.sort('observed_on', descending=False)
-
-	with pl.Config(tbl_rows=-1, tbl_cols=-1):
-		print(observation_df_large)
 
 	df_grouped = observation_df_large.with_columns(
     	group_id=pl.sum_horizontal(
@@ -437,10 +433,10 @@ with ThreadPoolExecutor(max_workers=2) as executor:
 					"end_date": end_date,
 					"data": result
 				})
-				print(f"Finished {start_date} to {end_date}")
+				st.write(f"Finished {start_date} to {end_date}")
 		
 			except Exception as e:
-				print(f"Error for {start_date} to {end_date}: {e}")
+				st.write(f"Error for {start_date} to {end_date}: {e}")
 					
 		futures = {
 			executor.submit(
@@ -465,10 +461,10 @@ with ThreadPoolExecutor(max_workers=2) as executor:
 					"end_date": end_date,
 					"data": result
 				})
-				print(f"Finished {start_date} to {end_date}")
+				st.write(f"Finished {start_date} to {end_date}")
 	
 			except Exception as e:
-				print(f"Error for {start_date} to {end_date}: {e}")
+				st.write(f"Error for {start_date} to {end_date}: {e}")
 
 		results.sort(key=lambda x: date_ranges.index(
     		(x["start_date"], x["end_date"])
