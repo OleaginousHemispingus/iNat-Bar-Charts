@@ -1,7 +1,6 @@
 streamlit
 requests
 polars
-polars.selectors
 datetime
 seaborn
 calendar
