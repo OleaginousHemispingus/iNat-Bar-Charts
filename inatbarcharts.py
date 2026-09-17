@@ -66,7 +66,7 @@ torg = 1
 
 #Ranks = ["species", "genus"]
 
-query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
+query = st.text_input("Enter a place (format for a state is [State, Country code], for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
 #rank = st.selectbox("What rank I am looking for: ", options = Ranks, index=None)
 
