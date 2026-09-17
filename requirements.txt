@@ -1,0 +1,13 @@
+streamlit
+requests
+polars
+polars.selectors
+datetime
+seaborn
+calendar
+functools
+time
+matplotlib.pyplot
+pandas
+concurrent.futures
+dateutil.relativedelta
