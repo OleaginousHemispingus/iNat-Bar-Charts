@@ -15,6 +15,7 @@ import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dateutil.relativedelta import relativedelta
 import streamlit as st
+import math
 
 header = {
     "User-Agent": "Checklistinator: iNat Bar Chart(https://inatbarcharts.streamlit.app/; iNat username: ospreyj; joshua.lu.johnson@gmail.com)"
@@ -480,7 +481,7 @@ with ThreadPoolExecutor(max_workers=2) as executor:
         
 
 	else: 
-		st.write(f"Estimated time: {ceiling(totalresults/200)} seconds")
+		st.write(f"Estimated time: {math.ceiling(totalresults/200)} seconds")
 		result = find_observations(our_id, our_place, str(firstdate), str(today))
 		combined_df = reduce(lambda left, right: left.join(right, on="id", how="full", coalesce=True), result)
 		combined_df = combined_df.fill_null(0)
