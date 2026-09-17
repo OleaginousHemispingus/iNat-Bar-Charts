@@ -4,7 +4,6 @@ polars
 datetime
 seaborn
 functools
-matplotlib.pyplot
 pandas
 concurrent.futures
 dateutil.relativedelta
