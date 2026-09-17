@@ -64,11 +64,11 @@ Numberofr = int(Numberofr)
 
 torg = 1
 
-Ranks = ["species", "genus", "family", "order"]
+Ranks = ["species", "genus", "tribe", "subfamily", "family", "superfamily", "suborder", "order", "superorder", "class"]
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
-rank = st.selectbox("What rank I am looking for: ", options = Ranks, index=None)
+rank = st.selectbox("What rank I am looking for: ", options = Ranks)
 
 if not yes:
 	st.stop()
@@ -401,7 +401,7 @@ ids = combined_df.select(["id"])
 
 esttime = min(Numberofr, ids.height)
 
-st.write(f"Translating iNat IDs to species names (estimated time {esttime} seconds)...")
+st.write(f"Translating iNat IDs to {rank} names (estimated time {esttime} seconds)...")
 
 url = "https://api.inaturalist.org/v1/taxa/autocomplete"
 for x in range(0,ids.height):
@@ -457,7 +457,7 @@ for x in range(0,ids.height):
 	#else:
 	#	combined_df = combined_df.with_columns(id = pl.when(pl.col("id") == yes).then(pl.lit(species)).otherwise(pl.col("id")))
 	#	successes += 1
-	if successes == int(Numberofr) and rank == "species":
+	if successes == int(Numberofr):
 		combined_df = combined_df.head(int(Numberofr))
 		break
 
