@@ -96,7 +96,7 @@ except:
 	our_name = taxon['name']
 st.write(f"Selected taxon: {our_name}")
 
-res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&fields=display_name", headers=header)
+res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&order_by=area&fields=display_name", headers=header)
 if res_place.status_code != 200:
 	st.write(f"Error: {res.status_code}")
 results_place = res_place.json().get("results", [])
@@ -448,7 +448,10 @@ for x in range(0,ids.height):
 		#combined_df = combined_df.remove(pl.col("id") == str(yes))
 		
 	if rank == "species":
-		taxa = (taxon['preferred_common_name'])
+		try:
+			taxa = (taxon['preferred_common_name'])
+		except:
+			taxa = (taxon['name'])
 	else:
 		taxa = (taxon['name'])
 			
