@@ -123,7 +123,7 @@ ourstart = f'{ourmonth}-{ourday}'
 dateindex = date_starts.index(ourstart)
 
 
-firsttry = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={our_place}&taxon_id={our_id}&d1={firstdate}&d2={today}&page=1&order=desc')
+firsttry = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={our_place}&taxon_id={our_id}&d1={firstdate}&d2={today}&quality_grade=needs_id,research&page=1&order=desc')
 totalresults = firsttry.json()['total_results']
 
 if totalresults == 0:
@@ -271,7 +271,7 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 	page = 1
 	max_pages = 60
 	while page <= max_pages:
-		response = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={place}&taxon_id={taxon}&d1={start}&d2={end}&per_page=200&page={page}&order=desc&order_by=observed_on&fields=species_guess%2Cobserved_on%2Ctaxon')
+		response = requests.get(f'https://api.inaturalist.org/v2/observations?place_id={place}&taxon_id={taxon}&d1={start}&d2={end}&quality_grade=needs_id,research&per_page=200&page={page}&order=desc&order_by=observed_on&fields=species_guess%2Cobserved_on%2Ctaxon')
 		observations = response.json()['results']
 	
 
