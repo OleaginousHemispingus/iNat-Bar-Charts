@@ -478,7 +478,7 @@ with ThreadPoolExecutor(max_workers=2) as executor:
         
 
 	else: 
-		st.write(f"Estimated time: {math.ceil(totalresults/200)} seconds")
+		st.write(f"Estimated time: {math.ceil(totalresults/200)*4} seconds")
 		result = find_observations(our_id, our_place, str(firstdate), str(today))
 		combined_df = reduce(lambda left, right: left.join(right, on="id", how="full", coalesce=True), result)
 		combined_df = combined_df.fill_null(0)
