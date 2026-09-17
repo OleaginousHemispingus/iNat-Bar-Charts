@@ -3,7 +3,6 @@ requests
 polars
 datetime
 seaborn
-calendar
 functools
 time
 matplotlib.pyplot
