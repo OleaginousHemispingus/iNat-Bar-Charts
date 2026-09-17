@@ -164,7 +164,7 @@ def find_species(taxon: int, place: int, start_md: str, end_md: str, start_year:
 			
 			
 			
-			response = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?captive=false&place_id={place}&rank={rank}&taxon_id={taxon}&d1={start.isoformat()}&d2={end.isoformat()}&page={page}&order=desc', headers=header)
+			response = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?captive=false&place_id={place}&rank={rank}&taxon_id={taxon}&d1={start.isoformat()}&d2={end.isoformat()}&quality_grade=needs_id,research&page={page}&order=desc', headers=header)
 			if response.status_code != 200:
 				st.write(f"Error: {response.status_code}")
 			
