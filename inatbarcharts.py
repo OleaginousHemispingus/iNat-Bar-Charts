@@ -315,7 +315,6 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 
 	for x in range(1, len(date_starts)):
 		ourdf = df_list[x-1]
-		st.write(ourdf)
 		thisdate = ourdf.item(0,"group_id")
 		if thisdate!= x:
 			newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[x-1]}":float})
