@@ -182,6 +182,8 @@ esttime = min(Numberofr, ids.height)
 
 st.write(f"Translating iNat IDs to {rank} names (estimated time {esttime} seconds)...")
 
+name = []
+
 url = "https://api.inaturalist.org/v1/taxa/autocomplete"
 for x in range(0,ids.height):
 	combined_df = combined_df.group_by("id", maintain_order=True).agg(cs.numeric().sum())
@@ -210,10 +212,13 @@ for x in range(0,ids.height):
 	if rank == "species":
 		try:
 			taxa = (taxon['preferred_common_name'])
+			names.append(taxa)
 		except:
 			taxa = (taxon['name'])
+			names.append(taxa)
 	else:
 		taxa = (taxon['name'])
+		names.append(taxa)
 			
 	combined_df = combined_df.with_columns(id = pl.when(pl.col("id") == yes).then(pl.lit(taxa)).otherwise(pl.col("id")))
 
