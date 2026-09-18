@@ -329,7 +329,7 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 	#	df_list.append(newdf)
 
 
-	print(df_list)
+	st.write(df_list)
 	numm = 0
 
 	for observation_df_halfmonth in df_list:
