@@ -78,9 +78,6 @@ if not query:
 if not Numberofr:
 	st.stop()
 
-if not Numberofy:
-	st.stop()
-
 if not rank:
 	st.stop()
 
@@ -114,7 +111,7 @@ our_id = taxon['id']
 our_place = place['id']
 
 today = date.today()
-firstdate = date.today() - relativedelta(years=Numberofy)
+firstdate = date.today() - relativedelta(years=2)
 if 1 <= today.day < 14:
 	ourday = "01"
 else:
