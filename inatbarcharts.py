@@ -582,7 +582,7 @@ df = combined_df.head(int(Numberofr))
 df_max = df.drop("id")
 provmax = df_max.select(pl.max_horizontal("*")).max().item()
 if provmax is None:
-	st.write("No instances of {our_name} found in {placename}!")
+	st.write(f"No instances of {our_name} found in {placename}!")
 	st.stop()
 if provmax > 35:
 	absolute_max = round(provmax/2)
