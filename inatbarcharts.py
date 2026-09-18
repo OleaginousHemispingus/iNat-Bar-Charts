@@ -57,9 +57,6 @@ dfs = []
 
 yes = st.text_input("Enter a taxon: ")
 
-Numberofy = st.text_input("How many years of data I want included (each year adds ~30 seconds): ", "2")
-Numberofy = int(Numberofy)
-
 Numberofr = st.text_input("How many results I want: ", "10")
 Numberofr = int(Numberofr)
 
@@ -204,6 +201,8 @@ for x in range(0,ids.height):
 		next
 
 	taxon = results[0]
+
+	ourrank = taxon['rank']
 
 	
 	#taxa = "nothing"
