@@ -314,17 +314,22 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 	df_list = df_grouped.partition_by("group_id", include_key=True)
 
 	for x in range(1, len(date_starts)):
-		ourdf = df_list[x-1]
-		thisdate = ourdf.item(0,"group_id")
-		if thisdate!= x:
+		try:
+			ourdf = df_list[x-1]
+			thisdate = ourdf.item(0,"group_id")
+			if thisdate!= x:
+				newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[x-1]}":float})
+				df_list.insert(x-1, newdf)
+		except:
 			newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[x-1]}":float})
-			df_list.insert(x-1, newdf)
+			df_list.append(newdf)
 
-	if df_list[-1].item(0,"group_id") != 24:
-		newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[-1]}":float})
-		df_list.append(newdf)
+	#if df_list[-1].item(0,"group_id") != 24:
+	#	newdf = pl.DataFrame(schema={"id":int, f"p_{date_starts[-1]}":float})
+	#	df_list.append(newdf)
 
 
+	print(df_list)
 	numm = 0
 
 	for observation_df_halfmonth in df_list:
