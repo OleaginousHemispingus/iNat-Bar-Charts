@@ -262,8 +262,8 @@ ypos = range(0,len(ylabs))
 ax.set_xticks(positions, rotation=45, ha="right", labels=reallabels)
 st.pyplot(fig)
 
-fig2, axes = df_pd.T.plot.line(subplots=True, sharex=True, sharey=True, ylim=(0, absolute_max), legend=False, figsize=(16,12))
+axes = df_pd.T.plot.line(subplots=True, sharex=True, sharey=True, ylim=(0, absolute_max), legend=False, figsize=(16,12))
 for ax, title in zip(axes, names):
   ax.set_title(title)
 plt.tight_layout()
-st.pyplot(fig2)
+st.pyplot(axes)
