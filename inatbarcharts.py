@@ -266,4 +266,4 @@ axes = df_pd.T.plot.line(subplots=True, sharex=True, sharey=True, ylim=(0, absol
 for ax, title in zip(axes, names):
   ax.set_title(title)
 plt.tight_layout()
-st.pyplot(axes)
+st.pyplot()
