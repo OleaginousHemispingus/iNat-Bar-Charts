@@ -313,10 +313,9 @@ def find_observations(taxon: int, place: int, start: str, end: str):
 
 	df_list = df_grouped.partition_by("group_id", include_key=True)
 
-	st.write(len(date_starts))
 
 	for x in range(1, len(date_starts)):
-
+		st.write(x-1)
 		try:
 			ourdf = df_list[x-1]
 			thisdate = ourdf.item(0,"group_id")
