@@ -182,7 +182,7 @@ esttime = min(Numberofr, ids.height)
 
 st.write(f"Translating iNat IDs to {rank} names (estimated time {esttime} seconds)...")
 
-name = []
+names = []
 
 url = "https://api.inaturalist.org/v1/taxa/autocomplete"
 for x in range(0,ids.height):
