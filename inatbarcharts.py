@@ -69,6 +69,8 @@ rank = st.selectbox("What rank I am looking for: ", options = Ranks)
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
+researchgrade = st.checkbox("Research-grade observations only?")
+
 
 if not yes:
 	st.stop()
@@ -125,8 +127,10 @@ date_starts = ['01-01','01-16','02-01','02-16','03-01','03-16','04-01','04-16','
 ourstart = f'{ourmonth}-{ourday}'
 dateindex = date_starts.index(ourstart)
 
-
-firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&page=1&order=desc&fields=preferred_common_name')
+if researchgrade:
+	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
+else:
+	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name
 totalresults = firsttry.json()['results']
 
 if totalresults == 0:
@@ -160,7 +164,10 @@ observation_df_large = pl.DataFrame()
 
 for taxonid in taxaids:
 	time.sleep(1)
-	response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year')
+	if researchgrade:
+		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year')
+	else:
+		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=needs_id,research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year')
 	observations = response.json()['results']['week_of_year']
 	observation_df = pl.DataFrame(observations, strict=False, infer_schema_length=None)
 	idcol = pl.Series("id", [taxonid])
