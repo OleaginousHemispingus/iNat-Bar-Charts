@@ -130,7 +130,7 @@ dateindex = date_starts.index(ourstart)
 if researchgrade:
 	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
 else:
-	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name
+	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
 totalresults = firsttry.json()['results']
 
 if totalresults == 0:
