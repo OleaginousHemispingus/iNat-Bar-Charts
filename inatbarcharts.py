@@ -72,7 +72,7 @@ query = st.text_input("Enter a place (the format for a state is [State, Country 
 if rank == "species":
 	researchgrade = st.checkbox("Research-grade observations only?")
 else:
-	researchgrade = FALSE
+	researchgrade = False
 
 
 if not yes:
