@@ -69,7 +69,10 @@ rank = st.selectbox("What rank I am looking for: ", options = Ranks)
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
-researchgrade = st.checkbox("Research-grade observations only?")
+if rank == "species":
+	researchgrade = st.checkbox("Research-grade observations only?")
+else:
+	researchgrade = FALSE
 
 
 if not yes:
