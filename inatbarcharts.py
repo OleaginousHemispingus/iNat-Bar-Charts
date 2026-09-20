@@ -30,26 +30,28 @@ dfs = []
 
 yes = st.text_input("Enter a taxon: ")
 
-Numberofr = st.text_input("How many results I want: ", "10")
-Numberofr = int(Numberofr)
+col1, col2 = st.columns(2)
 
-torg = 1
+with col1:
+	Numberofr = st.text_input("How many results I want: ", "10")
+	Numberofr = int(Numberofr)
 
 Ranks = ["species", "genus", "tribe", "subfamily", "family", "superfamily", "suborder", "order", "superorder", "class"]
 
-rank = st.selectbox("What rank I am looking for: ", options = Ranks)
+with col2:
+	rank = st.selectbox("What rank I am looking for: ", options = Ranks)
 #rank="species"
+
+if rank == "species":
+	researchgrade = st.checkbox("Research-grade observations only?")
+else:
+	researchgrade = False
 
 personallists = ["---", "Life List (Worldwide)", "Life List (selected place)", "Year List (Worldwide)", "Year List (selected place)", "Month List (all years)", "Month List (this year)"]
 
 lifelist = st.selectbox("Hide taxa on: ", options = personallists)
 if lifelist != '---':
 	username = st.text_input("Enter your iNaturalist username:")
-
-if rank == "species":
-	researchgrade = st.checkbox("Research-grade observations only?")
-else:
-	researchgrade = False
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
