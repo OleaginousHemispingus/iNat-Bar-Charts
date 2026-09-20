@@ -21,33 +21,6 @@ header = {
     "User-Agent": "Checklistinator: iNat Bar Chart(https://inatbarcharts.streamlit.app/; iNat username: ospreyj; joshua.lu.johnson@gmail.com)"
 }
 
-all_obs = []
-
-def daterange(start_date, end_date):
-	current = start_date
-	while current < end_date:
-		_, last_day = calendar.monthrange(current.year, current.month)
-		mid_month = current.replace(day=15)
-		end_of_month = current.replace(day=last_day)
-		yield current, min(mid_month, end_date)
-		if mid_month < end_date:
-			yield mid_month, min(end_of_month + timedelta(days=1), end_date)
-		next_month = (current.replace(day=1) + timedelta(days=32)).replace(day=1)
-		#yield current, min(next_month, end_date)
-		current = next_month
-
-def expand_md_range(start_md: str, end_md: str, start_year: int, end_year: int):
-	#ranges = []
-	for year in range(start_year, end_year + 1):
-		try:
-			start = datetime.strptime(f"{year}-{start_md}", "%Y-%m-%d").date()
-			end = datetime.strptime(f"{year}-{end_md}", "%Y-%m-%d").date()
-			yield ((start, end))
-		except ValueError as e:
-			st.write(f"Skipping invalid date in year {year}: {e}")
-	#yield ranges
-
-
 st.title("iNat Bar Charts")
 st.write("An app that will provide bar charts for the taxa and location of your choosing, like eBird does for birds")
 st.write("(Built with the iNaturalist API, which can be a little slow)")
@@ -100,7 +73,8 @@ try:
 	our_name = taxon['preferred_common_name']
 except:
 	our_name = taxon['name']
-st.write(f"Selected taxon: {our_name}")
+placeholdertaxon = st.empty()
+placeholdertaxon.write(f"Selected taxon: {our_name}")
 
 try:
 	res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&order_by=area&fields=display_name", headers=header)
@@ -112,7 +86,10 @@ try:
 except:
 	st.write("Couldn't find that place")
 	st.stop()
-st.write(f"Selected place: {placename}")
+placeholderplace = st.empty()
+placeholderplace.write(f"Selected place: {placename}")
+
+
 our_id = taxon['id']
 our_place = place['id']
 
@@ -131,41 +108,67 @@ ourstart = f'{ourmonth}-{ourday}'
 dateindex = date_starts.index(ourstart)
 
 if researchgrade:
-	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
+	firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
 else:
-	firsttry = requests.get(f'https://api.inaturalist.org/v2/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
+	firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
+
 totalresults = firsttry.json()['results']
 
-if totalresults == 0:
-	st.write("No such thing")
+if len(totalresults) == 0:
+	st.write(f"No instances of {our_name} in {placename}")
 	st.stop()
+
 
 #time.sleep(5)
 taxaids = []
+names = []
 
-CALC = """
-Starting...
-"""
+#CALC = """
+#Starting...
+#"""
 
 
-def stream_data_ca():
-    for word in list(CALC):
-        yield word + " "
-        time.sleep(0.1)
+#def stream_data_ca():
+#    for word in list(CALC):
+#        yield word + " "
+#        time.sleep(0.1)
 
-st.write_stream(stream_data_ca())
+#attempt = st.write_stream(stream_data_ca())
 
-for x in range(0,Numberofr):
-    try:
-        taxaids.append(totalresults[x]['taxon']['id'])
-    except:
-        pass
+esttime = min(Numberofr, len(totalresults))
 
+for x in range(0, esttime):
+	if totalresults[x]['taxon']['rank'] != rank:
+		pass
+	try:
+		taxaids.append(totalresults[x]['taxon']['id'])
+		if rank == "species":
+			try:
+				taxa = (totalresults[x]['taxon']['preferred_common_name'])
+				names.append(taxa)
+			except:
+				taxa = (totalresults[x]['taxon']['name'])
+				names.append(taxa)
+		else:	
+			taxa = (totalresults[x]['taxon']['name'])
+			names.append(taxa)
+	except:
+		pass
+
+
+taxadict = dict(zip(taxaids, names))
 #time.sleep(15)
 
 observation_df_large = pl.DataFrame()
 
+placeholder = st.empty()
+
+numdone = 1
+
+
+
 for taxonid in taxaids:
+	placeholder.write(f"{numdone} finished out of {esttime}")
 	time.sleep(1)
 	if researchgrade:
 		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year')
@@ -176,6 +179,9 @@ for taxonid in taxaids:
 	idcol = pl.Series("id", [taxonid])
 	observation_df.insert_column(0, idcol)
 	observation_df_large = pl.concat([observation_df_large, observation_df])
+	placeholder.empty()
+	numdone += 1
+
 
 
 combined_df = observation_df_large
@@ -189,55 +195,19 @@ combined_df = combined_df.sort('rowsum', descending=True)
 combined_df = combined_df.drop('rowsum')
 ids = combined_df.select(["id"])
 
-esttime = min(Numberofr, ids.height)
-
-st.write(f"Translating iNat IDs to {rank} names (estimated time {esttime} seconds)...")
-
-names = []
-
 url = "https://api.inaturalist.org/v1/taxa/autocomplete"
 for x in range(0,ids.height):
 	combined_df = combined_df.group_by("id", maintain_order=True).agg(cs.numeric().sum())
 	yes = ids[x,0]
-	time.sleep(0.75)
-	res = requests.get(f"https://api.inaturalist.org/v2/taxa?taxon_id={yes}&fields=preferred_common_name%2Cname%2Crank%2Cancestry", headers=header)
-	if res.status_code != 200:
-		st.write(f"Error: {res.status_code}")
-
-	try:
-		results = res.json().get("results", [])
-	except:
-		combined_df = combined_df.remove(pl.col("id") == str(yes))
-		next
-
-	taxon = results[0]
-
-	ourrank = taxon['rank']
-
-	
-	#taxa = "nothing"
-	
-	if ourrank != rank:
-		combined_df = combined_df.remove(pl.col("id") == str(yes))
-		
-	if rank == "species":
-		try:
-			taxa = (taxon['preferred_common_name'])
-			names.append(taxa)
-		except:
-			taxa = (taxon['name'])
-			names.append(taxa)
-	else:
-		taxa = (taxon['name'])
-		names.append(taxa)
-			
+	taxa = taxadict[int(yes)]
 	combined_df = combined_df.with_columns(id = pl.when(pl.col("id") == yes).then(pl.lit(taxa)).otherwise(pl.col("id")))
 
 
 combined_df = combined_df.group_by("id", maintain_order=True).agg(cs.numeric().sum())
 df = combined_df.head(int(Numberofr))
 
-
+placeholdertaxon.empty()
+placeholderplace.empty()
 
 #st.write(sns.load_dataset(df))
 
@@ -246,7 +216,7 @@ provmax = df_max.select(pl.max_horizontal("*")).max().item()
 if provmax is None:
 	st.write(f"No instances of {our_name} found in {placename}!")
 	st.stop()
-if provmax > 35:
+elif provmax > 35:
 	absolute_max = round(provmax/2)
 else:
 	absolute_max = round(provmax)
@@ -255,27 +225,33 @@ df_pd = df.to_pandas()
 df_pd = df_pd.set_index("id")
 df_pd = df_pd.dropna(how="all")  # drop rows that are all NaNs
 
-fig, ax = plt.subplots(figsize=(16, 12))
+fig, ax = plt.subplots(figsize=(16, esttime))
 sns.heatmap(df_pd, cmap="Purples", linewidths=0.2, linecolor='gray', vmax=absolute_max, ax=ax)
 
-ax.set_title(f"Frequency of {our_name} in {placename}")
-ax.set_xlabel("Half-Month")
-ax.set_ylabel("Species")
+ax.set_title(f"Frequency of {our_name} in {placename}", fontsize=15)
+ax.set_xlabel("Half-Month", fontsize=15)
+ax.set_ylabel("Species", fontsize=15)
 
 positions = [0,4,8,12,17,21,25,30,34,38,43,47]
 
 reallabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-	
+
 ylabs = df_pd.index.tolist()
 ypos = range(0,len(ylabs))
+realypos = []
+for pos in ypos:
+	realypos.append(pos + 0.5)
 
-ax.set_xticks(positions, rotation=45, ha="right", labels=reallabels)
+ax.set_xticks(positions, rotation=45, ha="right", labels=reallabels, fontsize=15)
+ax.set_yticks(realypos, rotation=0, ha="right", labels=ylabs, fontsize=15)
 st.pyplot(fig)
 
-axes = df_pd.T.plot.line(subplots=True, sharex=True, sharey=True, ylim=(0, absolute_max), legend=False, figsize=(16,12))
+figy = esttime*5/3
+axes = df_pd.T.plot.line(subplots=True, sharex=True, sharey=True, ylim=(0, absolute_max), legend=False, figsize=(16,figy))
 fig2 = axes.flatten()[0].get_figure()
-for ax, title in zip(axes.flatten(), names):
-  ax.set_title(title)
+for ax, title in zip(axes.flatten(), ylabs):
+  ax.set_title(title, fontsize=15)
+  ax.set_xticks(positions, rotation=45, ha="right", labels=reallabels, fontsize=15)
 plt.tight_layout()
 st.pyplot(fig2)
