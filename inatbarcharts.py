@@ -40,12 +40,18 @@ Ranks = ["species", "genus", "tribe", "subfamily", "family", "superfamily", "sub
 rank = st.selectbox("What rank I am looking for: ", options = Ranks)
 #rank="species"
 
-query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
+personallists = ["---", "Life List (Worldwide)", "Life List (selected place)", "Year List (Worldwide)", "Year List (selected place)", "Month List (all years)", "Month List (this year)"]
+
+lifelist = st.selectbox("Hide taxa on: ", options = personallists)
+if lifelist != '---':
+	username = st.text_input("Enter your iNaturalist username:")
 
 if rank == "species":
 	researchgrade = st.checkbox("Research-grade observations only?")
 else:
 	researchgrade = False
+
+query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
 
 if not yes:
@@ -58,6 +64,9 @@ if not Numberofr:
 	st.stop()
 
 if not rank:
+	st.stop()
+
+if lifelist != '---' and not username:
 	st.stop()
 
 try:
@@ -118,6 +127,33 @@ if len(totalresults) == 0:
 	st.write(f"No instances of {our_name} in {placename}")
 	st.stop()
 
+if lifelist != "---":
+	time.sleep(1)
+
+user_lifelist = []
+
+try:
+	if lifelist == "Life List (Worldwide)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}')
+	elif lifelist == "Life List (selected place)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}')
+	elif lifelist == "Year List (Worldwide)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&year={today.year}')
+	elif lifelist == "Year List (selected place)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}&year={today.year}')
+	elif lifelist == "Month List (all years)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={today.month}')
+	elif lifelist == "Month List (this year)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={today.month}')
+
+	lifemask = secondcheck.json()['results']
+	for x in range(0, len(lifemask)):
+		user_lifelist.append(lifemask[x]['id'])
+
+except:
+	user_lifelist = []
+
+
 
 #time.sleep(5)
 taxaids = []
@@ -128,6 +164,8 @@ names = []
 #"""
 
 
+
+
 #def stream_data_ca():
 #    for word in list(CALC):
 #        yield word + " "
@@ -135,11 +173,14 @@ names = []
 
 #attempt = st.write_stream(stream_data_ca())
 
-esttime = min(Numberofr, len(totalresults))
 
-for x in range(0, esttime):
+for x in range(0, len(totalresults)):
+	if len(names) == Numberofr:
+		break
 	if totalresults[x]['taxon']['rank'] != rank:
-		pass
+		continue
+	if totalresults[x]['taxon']['id'] in user_lifelist:
+		continue
 	try:
 		taxaids.append(totalresults[x]['taxon']['id'])
 		if rank == "species":
@@ -153,9 +194,9 @@ for x in range(0, esttime):
 			taxa = (totalresults[x]['taxon']['name'])
 			names.append(taxa)
 	except:
-		pass
+		continue
 
-
+esttime = min(Numberofr, len(names))
 taxadict = dict(zip(taxaids, names))
 #time.sleep(15)
 
@@ -212,7 +253,10 @@ placeholderplace.empty()
 #st.write(sns.load_dataset(df))
 
 df_max = df.drop("id")
-provmax = df_max.select(pl.max_horizontal("*")).max().item()
+if lifelist == '---':
+	provmax = df_max.select(pl.max_horizontal("*")).max().item()
+else:
+	provmax = (totalresults[x]['count'])/6
 if provmax is None:
 	st.write(f"No instances of {our_name} found in {placename}!")
 	st.stop()
