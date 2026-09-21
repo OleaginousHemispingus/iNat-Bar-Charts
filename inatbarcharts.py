@@ -22,36 +22,42 @@ header = {
 }
 
 st.title("iNat Bar Charts")
-st.write("An app that will provide bar charts for the taxa and location of your choosing, like eBird does for birds")
-st.write("(Built with the iNaturalist API, which can be a little slow)")
-	
+st.write("An app that will provide bar charts for the taxa and location of your choosing, like eBird does for birds")	
+st.write("You can also hide taxa on your life list, or sort by certain months")
 
 dfs = []
 
 yes = st.text_input("Enter a taxon: ")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns([1,2,2])
 
 with col1:
-	Numberofr = st.text_input("How many results I want: ", "10")
+	Numberofr = st.text_input("How many results: ", "10")
 	Numberofr = int(Numberofr)
 
-Ranks = ["species", "genus", "tribe", "subfamily", "family", "superfamily", "suborder", "order", "superorder", "class"]
+Ranks = ["Species", "Genus", "Family", "Order", "Class", "...", "Complex", "Tribe", "Subgenus", "Subfamily", "Superfamily", "Suborder", "Superorder"]
 
 with col2:
-	rank = st.selectbox("What rank I am looking for: ", options = Ranks)
-#rank="species"
+	Rank = st.selectbox("What rank I am looking for: ", options = Ranks)
+	rank = Rank.lower()
+
+monthlist = ["Year-round", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+with col3:
+	usermonth = st.selectbox("Sort by frequency in: ", options = monthlist)
 
 if rank == "species":
 	researchgrade = st.checkbox("Research-grade observations only?")
 else:
 	researchgrade = False
 
-personallists = ["---", "Life List (Worldwide)", "Life List (selected place)", "Year List (Worldwide)", "Year List (selected place)", "Month List (all years)", "Month List (this year)"]
+personallists = ["---", "Life List (Worldwide)", "Life List (selected place)", "Year List (Worldwide)", "Year List (selected place)", "Life List for selected month (all years)", "Life List for selected month (this year)", "Life List for current month (all years)", "Life List for current month (this year)"]
 
 lifelist = st.selectbox("Hide taxa on: ", options = personallists)
 if lifelist != '---':
 	username = st.text_input("Enter your iNaturalist username:")
+
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD")
 
@@ -69,6 +75,10 @@ if not rank:
 	st.stop()
 
 if lifelist != '---' and not username:
+	st.stop()
+
+if Rank == "...":
+	st.write("C'mon now, \"...\" was clearly just to separate the major ranks from the minor ones")
 	st.stop()
 
 try:
@@ -118,10 +128,17 @@ date_starts = ['01-01','01-16','02-01','02-16','03-01','03-16','04-01','04-16','
 ourstart = f'{ourmonth}-{ourday}'
 dateindex = date_starts.index(ourstart)
 
-if researchgrade:
-	firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
+if usermonth != "Year-round":
+	requestedmonth = datetime.strptime(usermonth, "%B").month
+	if researchgrade:
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name')
+	else:
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name')
 else:
-	firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
+	if researchgrade:
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
+	else:
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
 
 totalresults = firsttry.json()['results']
 
@@ -143,10 +160,14 @@ try:
 		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&year={today.year}')
 	elif lifelist == "Year List (selected place)":
 		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}&year={today.year}')
-	elif lifelist == "Month List (all years)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={today.month}')
-	elif lifelist == "Month List (this year)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={today.month}')
+	elif lifelist == "Life List for selected month (all years)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={requestedmonth}')
+	elif lifelist == "Life List for selected month (this year)":
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={requestedmonth}')
+	elif lifelist == "Life List for current month (all years)":
+			secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={today.month}')
+	elif lifelist == "Life List for current month (this year)":
+			secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={today.month}')
 
 	lifemask = secondcheck.json()['results']
 	for x in range(0, len(lifemask)):
@@ -234,7 +255,7 @@ ids = combined_df.select(["id"])
 successes = 0
 combined_df = combined_df.with_columns(pl.col("id").cast(pl.String))
 combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
-combined_df = combined_df.sort('rowsum', descending=True)
+#combined_df = combined_df.sort('rowsum', descending=True)
 combined_df = combined_df.drop('rowsum')
 ids = combined_df.select(["id"])
 
@@ -275,7 +296,7 @@ ax.set_title(f"Frequency of {our_name} in {placename}", fontsize=15)
 ax.set_xlabel("Half-Month", fontsize=15)
 ax.set_ylabel("Species", fontsize=15)
 
-positions = [0,4,8,12,17,21,25,30,34,38,43,47]
+positions = [0,5,9,13,18,22,26,31,35,40,44,48]
 
 reallabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
