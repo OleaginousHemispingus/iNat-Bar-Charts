@@ -255,10 +255,7 @@ placeholderplace.empty()
 #st.write(sns.load_dataset(df))
 
 df_max = df.drop("id")
-if lifelist == '---':
-	provmax = df_max.select(pl.max_horizontal("*")).max().item()
-else:
-	provmax = max(((totalresults[0]['count'])/6), 1)
+provmax = df_max.select(pl.max_horizontal("*")).max().item()
 if provmax is None:
 	st.write(f"No instances of {our_name} found in {placename}!")
 	st.stop()
