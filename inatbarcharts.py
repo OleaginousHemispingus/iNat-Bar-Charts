@@ -47,6 +47,10 @@ monthlist = ["Year-round", "January", "February", "March", "April", "May", "June
 with col3:
 	usermonth = st.selectbox("Sort by frequency in: ", options = monthlist)
 
+if Rank == "...":
+	st.write("C'mon now, \"...\" was clearly just to separate the major ranks from the minor ones")
+	st.stop()
+
 if rank == "species":
 	researchgrade = st.checkbox("Research-grade observations only?")
 else:
@@ -75,10 +79,6 @@ if not rank:
 	st.stop()
 
 if lifelist != '---' and not username:
-	st.stop()
-
-if Rank == "...":
-	st.write("C'mon now, \"...\" was clearly just to separate the major ranks from the minor ones")
 	st.stop()
 
 try:
