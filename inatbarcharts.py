@@ -255,16 +255,15 @@ ids = combined_df.select(["id"])
 
 successes = 0
 combined_df = combined_df.with_columns(pl.col("id").cast(pl.String))
-if rank != "species":
-	if requestedmonth:
-		monthcols = range(positions[requestedmonth - 1], positions[requestedmonth])
-		col_names = [combined_df.columns[i] for i in monthcols]
-		combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(col_names))
-		combined_df = combined_df.sort('rowsum', descending=True)
-	else:
-		combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
-		combined_df = combined_df.sort('rowsum', descending=True)
-	combined_df = combined_df.drop('rowsum')
+if requestedmonth:
+	monthcols = range(positions[requestedmonth - 1], positions[requestedmonth])
+	col_names = [combined_df.columns[i] for i in monthcols]
+	combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(col_names))
+	combined_df = combined_df.sort('rowsum', descending=True)
+else:
+	combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
+	combined_df = combined_df.sort('rowsum', descending=True)
+combined_df = combined_df.drop('rowsum')
 
 ids = combined_df.select(["id"])
 
