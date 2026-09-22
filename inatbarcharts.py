@@ -135,6 +135,7 @@ if usermonth != "Year-round":
 	else:
 		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name')
 else:
+	requestedmonth = False
 	if researchgrade:
 		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
 	else:
