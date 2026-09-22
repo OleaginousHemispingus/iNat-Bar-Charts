@@ -42,7 +42,7 @@ with col2:
 	rank = Rank.lower()
 
 monthlist = ["Year-round", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-
+positions = [0,5,9,13,18,22,26,31,35,40,44,48]
 
 with col3:
 	usermonth = st.selectbox("Sort by frequency in: ", options = monthlist)
@@ -254,9 +254,17 @@ ids = combined_df.select(["id"])
 
 successes = 0
 combined_df = combined_df.with_columns(pl.col("id").cast(pl.String))
-combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
-#combined_df = combined_df.sort('rowsum', descending=True)
-combined_df = combined_df.drop('rowsum')
+if rank != "species":
+	if requestedmonth:
+		monthcols = range(positions[requestedmonth - 1], positions[requestedmonth])
+		col_names = [combined_df.columns[i] for i in monthcols]
+		combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(col_names))
+		combined_df = combined_df.sort('rowsum', descending=True)
+	else:
+		combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
+		combined_df = combined_df.sort('rowsum', descending=True)
+	combined_df = combined_df.drop('rowsum')
+
 ids = combined_df.select(["id"])
 
 url = "https://api.inaturalist.org/v1/taxa/autocomplete"
@@ -295,8 +303,6 @@ sns.heatmap(df_pd, cmap="Purples", linewidths=0.2, linecolor='gray', vmax=absolu
 ax.set_title(f"Frequency of {our_name} in {placename}", fontsize=15)
 ax.set_xlabel("Half-Month", fontsize=15)
 ax.set_ylabel("Species", fontsize=15)
-
-positions = [0,5,9,13,18,22,26,31,35,40,44,48]
 
 reallabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
