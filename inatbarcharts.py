@@ -370,8 +370,8 @@ else:
 sns.heatmap(df_pd, cmap="Purples", linewidths=0.2, linecolor='gray', vmax=absolute_max, ax=ax)
 
 ax.set_title(f"Frequency of {our_name} in {placename}", fontsize=15)
-ax.set_xlabel("Half-Month", fontsize=15)
-ax.set_ylabel("Species", fontsize=15)
+ax.set_xlabel("Week", fontsize=15)
+ax.set_ylabel(f"{Rank}", fontsize=15)
 
 reallabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
