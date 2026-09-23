@@ -97,6 +97,10 @@ if not rank:
 if lifelist != '---' and not username:
 	st.stop()
 
+if Numberofr > 30:
+	st.write("The maximum number of results is 30")
+	st.stop()
+
 try:
 	res = requests.get(f"https://api.inaturalist.org/v2/taxa/autocomplete?q={yes}&fields=name%2Cpreferred_common_name%2Crank", headers=header)
 	if res.status_code != 200:
