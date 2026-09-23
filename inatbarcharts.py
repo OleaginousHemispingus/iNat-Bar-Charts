@@ -292,10 +292,7 @@ numdone = 1
 
 
 for taxonid in taxaids:
-	if rank == "species":
-		placeholder.write(f"{numdone} finished out of {esttime}")
-	else:
-		placeholder.write(f"{math.ceil(numdone/2)} finished out of {esttime}")
+	placeholder.write(f"{numdone} finished out of {esttime}")
 	time.sleep(1)
 	if researchgrade:
 		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year', headers=header)
