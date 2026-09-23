@@ -225,30 +225,57 @@ photos = []
 
 
 for x in range(0, len(totalresults)):
-	if len(names) == Numberofr:
-		break
-	if totalresults[x]['taxon']['rank'] != rank:
-		continue
-	if totalresults[x]['taxon']['id'] in user_lifelist:
-		continue
-	try:
-		taxaids.append(totalresults[x]['taxon']['id'])
-		if rank == "species":
-			try:
-				taxa = (totalresults[x]['taxon']['preferred_common_name'])
-				names.append(taxa)
-			except:
+	if rank == "species":
+		if len(names) == Numberofr:
+			break
+		if totalresults[x]['taxon']['rank'] != rank:
+			continue
+		if totalresults[x]['taxon']['id'] in user_lifelist:
+			continue
+		try:
+			taxaids.append(totalresults[x]['taxon']['id'])
+			if rank == "species":
+				try:
+					taxa = (totalresults[x]['taxon']['preferred_common_name'])
+					names.append(taxa)
+				except:
+					taxa = (totalresults[x]['taxon']['name'])
+					names.append(taxa)
+			else:	
 				taxa = (totalresults[x]['taxon']['name'])
 				names.append(taxa)
-		else:	
-			taxa = (totalresults[x]['taxon']['name'])
-			names.append(taxa)
-	except:
-		continue
-	try:
-		photos.append(totalresults[x]['taxon']['default_photo']['medium_url'])
-	except:
-		photos.append("https://inaturalist-open-data.s3.amazonaws.com/photos/6556276/square.jpg")
+		except:
+			continue
+		try:
+			photos.append(totalresults[x]['taxon']['default_photo']['medium_url'])
+		except:
+			photos.append("https://inaturalist-open-data.s3.amazonaws.com/photos/6556276/square.jpg")
+	else:
+		if len(names) == Numberofr*2:
+			break
+		if totalresults[x]['taxon']['rank'] != rank:
+			continue
+		if totalresults[x]['taxon']['id'] in user_lifelist:
+			continue
+		try:
+			taxaids.append(totalresults[x]['taxon']['id'])
+			if rank == "species":
+				try:
+					taxa = (totalresults[x]['taxon']['preferred_common_name'])
+					names.append(taxa)
+				except:
+					taxa = (totalresults[x]['taxon']['name'])
+					names.append(taxa)
+			else:	
+				taxa = (totalresults[x]['taxon']['name'])
+				names.append(taxa)
+		except:
+			continue
+		try:
+			photos.append(totalresults[x]['taxon']['default_photo']['medium_url'])
+		except:
+			photos.append("https://inaturalist-open-data.s3.amazonaws.com/photos/6556276/square.jpg")
+	
 
 esttime = min(Numberofr, len(names))
 taxadict = dict(zip(taxaids, names))
@@ -260,9 +287,11 @@ placeholder = st.empty()
 numdone = 1
 
 
-
 for taxonid in taxaids:
-	placeholder.write(f"{numdone} finished out of {esttime}")
+	if rank == "species":
+		placeholder.write(f"{numdone} finished out of {esttime}")
+	else:
+		placeholder.write(f"{math.ceil(numdone/2)} finished out of {esttime}")
 	time.sleep(1)
 	if researchgrade:
 		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year', headers=header)
@@ -292,7 +321,9 @@ if requestedmonth:
 else:
 	combined_df = combined_df.with_columns(rowsum = pl.sum_horizontal(cs.numeric()))
 	combined_df = combined_df.sort('rowsum', descending=True)
+
 combined_df = combined_df.drop('rowsum')
+combined_df = combined_df.head(int(Numberofr))
 
 ids = combined_df.select(["id"])
 
@@ -312,14 +343,13 @@ for x in range(0,ids.height):
 
 
 combined_df = combined_df.group_by("id", maintain_order=True).agg(cs.numeric().sum())
-df = combined_df.head(int(Numberofr))
 
 placeholdertaxon.empty()
 placeholderplace.empty()
 
 #st.write(sns.load_dataset(df))
 
-df_max = df.drop("id")
+df_max = combined_df.drop("id")
 provmax = df_max.select(pl.max_horizontal("*")).max().item()
 if provmax is None:
 	st.write(f"No instances of {our_name} found in {placename}!")
@@ -329,7 +359,7 @@ elif provmax > 35:
 else:
 	absolute_max = round(provmax)
 
-df_pd = df.to_pandas()
+df_pd = combined_df.to_pandas()
 df_pd = df_pd.set_index("id")
 df_pd = df_pd.dropna(how="all")  # drop rows that are all NaNs
 
