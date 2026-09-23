@@ -151,19 +151,23 @@ dateindex = date_starts.index(ourstart)
 if usermonth != "Year-round":
 	requestedmonth = datetime.strptime(usermonth, "%B").month
 	if researchgrade:
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name', headers=header)
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc', headers=header)
 	else:
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name', headers=header)
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc', headers=header)
 else:
 	requestedmonth = False
 	if researchgrade:
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name', headers=header)
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=research&page=1&order=desc', headers=header)
 	else:
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name', headers=header)
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc', headers=header)
 
-totalresults = firsttry.json()['results']
+firstresults = firsttry.json()['results']
 
-if len(totalresults) == 0:
+if len(firstresults) == 0:
 	anothertry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank=species&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name', headers=header)
 	speciesresults = anothertry.json()['results']
 	if len(speciesresults) == 0:
@@ -213,68 +217,68 @@ photos = []
 #Starting...
 #"""
 
+resultstaxa = []
+resultscount = []
 
+for x in range(0, len(firstresults)):
+	if firstresults[x]['rank'] != rank:
+		continue
+	if firstresults[x]['id'] in user_lifelist:
+			continue
+	resultstaxa.append(firstresults[x]['id'])
+	resultscount.append(firstresults[x]['descendant_obs_count'])
 
+firstdf = pl.DataFrame({
+    "id": resultstaxa,
+    "count": resultscount
+})
 
-#def stream_data_ca():
-#    for word in list(CALC):
-#        yield word + " "
-#        time.sleep(0.1)
+firstdf = firstdf.sort(pl.col("count"), descending=True)
+firstdf = firstdf.head(Numberofr)
+ourresults = firstdf.get_column("id").to_list()
 
-#attempt = st.write_stream(stream_data_ca())
+page = 1
+while page < 60:
+	time.sleep(1)
+	if len(names) >= Numberofr:
+		break
+	if len(names) >= len(ourresults):
+		break
+	thirdtry = requests.get(f'https://api.inaturalist.org/v1/taxa?place_id={our_place}&rank={rank}&taxon_id={our_id}&page={page}&per_page=500&order=desc', headers=header)
+	totalresults = thirdtry.json()['results']
 
+	#st.write(totalresults[1:10])
 
-for x in range(0, len(totalresults)):
-	if rank == "species":
+	for x in range(0, len(totalresults)):
 		if len(names) == Numberofr:
 			break
-		if totalresults[x]['taxon']['rank'] != rank:
+		if totalresults[x]['id'] not in ourresults:
 			continue
-		if totalresults[x]['taxon']['id'] in user_lifelist:
+		if totalresults[x]['rank'] != rank:
+			continue
+		if totalresults[x]['id'] in user_lifelist:
 			continue
 		try:
-			taxaids.append(totalresults[x]['taxon']['id'])
+			taxaids.append(totalresults[x]['id'])
 			if rank == "species":
 				try:
-					taxa = (totalresults[x]['taxon']['preferred_common_name'])
+					taxa = (totalresults[x]['preferred_common_name'])
 					names.append(taxa)
 				except:
-					taxa = (totalresults[x]['taxon']['name'])
+					taxa = (totalresults[x]['name'])
 					names.append(taxa)
 			else:	
-				taxa = (totalresults[x]['taxon']['name'])
+				taxa = (totalresults[x]['name'])
 				names.append(taxa)
 		except:
 			continue
 		try:
-			photos.append(totalresults[x]['taxon']['default_photo']['medium_url'])
+			photos.append(totalresults[x]['default_photo']['medium_url'])
 		except:
-			photos.append("https://inaturalist-open-data.s3.amazonaws.com/photos/6556276/square.jpg")
-	else:
-		if len(names) == Numberofr*2:
-			break
-		if totalresults[x]['taxon']['rank'] != rank:
-			continue
-		if totalresults[x]['taxon']['id'] in user_lifelist:
-			continue
-		try:
-			taxaids.append(totalresults[x]['taxon']['id'])
-			if rank == "species":
-				try:
-					taxa = (totalresults[x]['taxon']['preferred_common_name'])
-					names.append(taxa)
-				except:
-					taxa = (totalresults[x]['taxon']['name'])
-					names.append(taxa)
-			else:	
-				taxa = (totalresults[x]['taxon']['name'])
-				names.append(taxa)
-		except:
-			continue
-		try:
-			photos.append(totalresults[x]['taxon']['default_photo']['medium_url'])
-		except:
-			photos.append("https://inaturalist-open-data.s3.amazonaws.com/photos/6556276/square.jpg")
+			photos.append("https://inaturalist-open-data.s3.amazonaws.com/photos/2/square.jpg")
+	if page >= thirdtry.json()['total_results']/thirdtry.json()['page']:
+		break
+	page += 1
 	
 
 esttime = min(Numberofr, len(names))
