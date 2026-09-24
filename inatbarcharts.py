@@ -102,7 +102,7 @@ if Numberofr > 30:
 	st.stop()
 
 try:
-	res = requests.get(f"https://api.inaturalist.org/v2/taxa/autocomplete?q={yes}&fields=name%2Cpreferred_common_name%2Crank", headers=header)
+	res = requests.get(f"https://api.inaturalist.org/v2/taxa/autocomplete?q={yes}&fields=name%2Cpreferred_common_name%2Crank")
 	if res.status_code != 200:
 		st.write(f"Error: {res.status_code}")
 	results = res.json().get("results", [])
@@ -118,7 +118,7 @@ placeholdertaxon = st.empty()
 placeholdertaxon.write(f"Selected taxon: {our_name}")
 
 try:
-	res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&order_by=area&fields=display_name", headers=header)
+	res_place = requests.get(f"https://api.inaturalist.org/v2/places?q={query}&order_by=area&fields=display_name")
 	if res_place.status_code != 200:
 		st.write(f"Error: {res.status_code}")
 	results_place = res_place.json().get("results", [])
@@ -151,24 +151,24 @@ dateindex = date_starts.index(ourstart)
 if usermonth != "Year-round":
 	requestedmonth = datetime.strptime(usermonth, "%B").month
 	if researchgrade:
-		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name', headers=header)
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name')
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=research&month={requestedmonth}&page=1&order=desc')
 	else:
-		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name', headers=header)
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc&fields=preferred_common_name')
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=needs_id,research&month={requestedmonth}&page=1&order=desc')
 else:
 	requestedmonth = False
 	if researchgrade:
-		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name', headers=header)
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=research&page=1&order=desc', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=research&page=1&order=desc&fields=preferred_common_name')
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=research&page=1&order=desc')
 	else:
-		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name', headers=header)
-		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc', headers=header)
+		#firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank={rank}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
+		firsttry = requests.get(f'https://api.inaturalist.org/v1/observations/taxonomy?place_id={our_place}&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc')
 
 firstresults = firsttry.json()['results']
 
 if len(firstresults) == 0:
-	anothertry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank=species&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name', headers=header)
+	anothertry = requests.get(f'https://api.inaturalist.org/v1/observations/species_counts?place_id={our_place}&rank=species&taxon_id={our_id}&quality_grade=needs_id,research&page=1&order=desc&fields=preferred_common_name')
 	speciesresults = anothertry.json()['results']
 	if len(speciesresults) == 0:
 		st.write(f"No instances of {our_name} in {placename}")
@@ -183,21 +183,21 @@ user_lifelist = []
 
 try:
 	if lifelist == "Life List (Worldwide)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}', headers=header)
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}')
 	elif lifelist == "Life List (selected place)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}', headers=header)
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}')
 	elif lifelist == "Year List (Worldwide)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&year={today.year}', headers=header)
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&year={today.year}')
 	elif lifelist == "Year List (selected place)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}&year={today.year}', headers=header)
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?place_id={our_place}&user_id={username}&taxon_id={our_id}&year={today.year}')
 	elif lifelist == "Life List for selected month (all years)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={requestedmonth}', headers=header)
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={requestedmonth}')
 	elif lifelist == "Life List for selected month (this year)":
-		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={requestedmonth}', headers=header)
+		secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={requestedmonth}')
 	elif lifelist == "Life List for current month (all years)":
-			secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={today.month}', headers=header)
+			secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?user_id={username}&taxon_id={our_id}&month={today.month}')
 	elif lifelist == "Life List for current month (this year)":
-			secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={today.month}', headers=header)
+			secondcheck = requests.get(f'https://api.inaturalist.org/v2/observations/taxonomy?&user_id={username}&taxon_id={our_id}&year={today.year}&month={today.month}')
 
 	lifemask = secondcheck.json()['results']
 	for x in range(0, len(lifemask)):
@@ -244,7 +244,7 @@ while page < 60:
 		break
 	if len(names) >= len(ourresults):
 		break
-	thirdtry = requests.get(f'https://api.inaturalist.org/v1/taxa?place_id={our_place}&rank={rank}&taxon_id={our_id}&page={page}&per_page=500&order=desc', headers=header)
+	thirdtry = requests.get(f'https://api.inaturalist.org/v1/taxa?place_id={our_place}&rank={rank}&taxon_id={our_id}&page={page}&per_page=500&order=desc')
 	totalresults = thirdtry.json()['results']
 
 	#st.write(totalresults[1:10])
@@ -295,9 +295,9 @@ for taxonid in taxaids:
 	placeholder.write(f"{numdone} finished out of {esttime}")
 	time.sleep(1)
 	if researchgrade:
-		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year', headers=header)
+		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year')
 	else:
-		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=needs_id,research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year', headers=header)
+		response = requests.get(f'https://api.inaturalist.org/v2/observations/histogram?place_id={our_place}&taxon_id={taxonid}&quality_grade=needs_id,research&order=desc&fields=species_guess%2Cobserved_on&date_field=observed&interval=week_of_year')
 	observations = response.json()['results']['week_of_year']
 	observation_df = pl.DataFrame(observations, strict=False, infer_schema_length=None)
 	idcol = pl.Series("id", [taxonid])
@@ -337,7 +337,7 @@ for x in range(0,ids.height):
 	yes = ids[x,0]
 	taxa = taxadict[int(yes)]
 	photourl = photodict[int(yes)]
-	photo = requests.get(photourl, headers=header)
+	photo = requests.get(photourl)
 	image_graph = Image.open(BytesIO(photo.content))
 	actual_photos.append(image_graph)
 	combined_df = combined_df.with_columns(id = pl.when(pl.col("id") == yes).then(pl.lit(taxa)).otherwise(pl.col("id")))
