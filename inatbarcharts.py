@@ -394,7 +394,7 @@ if picturesq:
 	for y in range(1, len(actual_photos) + 1):
 		photograph = actual_photos[y-1]
 		img_array = np.array(photograph)
-		imagebox = OffsetImage(img_array,zoom=0.25)
+		imagebox = OffsetImage(img_array,zoom=0.3)
 		imagebox.image.axes = ax
 		ab = AnnotationBbox(imagebox, [60, y-0.5], frameon=False)
 		ax.add_artist(ab)
@@ -413,7 +413,7 @@ for y, (ax, title) in enumerate(zip(axes.flatten(), ylabs)):
     ax.set_xlim(-10, 53)
     photograph = actual_photos[y]
     img_array = np.array(photograph)
-    imagebox = OffsetImage(img_array,zoom=0.25)
+    imagebox = OffsetImage(img_array,zoom=0.3)
     imagebox.image.axes = ax
     ab = AnnotationBbox(imagebox, [-5, absolute_max/2], frameon=False)
     ax.add_artist(ab)
