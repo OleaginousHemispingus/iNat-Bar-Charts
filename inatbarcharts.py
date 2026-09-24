@@ -370,7 +370,11 @@ else:
 	fig, ax = plt.subplots(figsize=(16, esttime))
 sns.heatmap(df_pd, cmap="Purples", linewidths=0.2, linecolor='gray', vmax=absolute_max, ax=ax)
 
-ax.set_title(f"Frequency of {our_name} in {placename}", fontsize=15)
+if usermonth:
+	ax.set_title(f"Frequency of {our_name} in {placename} in {usermonth}", fontsize=15)
+else:
+	ax.set_title(f"Frequency of {our_name} in {placename}", fontsize=15)
+
 ax.set_xlabel("Week", fontsize=15)
 ax.set_ylabel(f"{Rank}", fontsize=15)
 
