@@ -365,7 +365,7 @@ df_pd = df_pd.set_index("id")
 df_pd = df_pd.dropna(how="all")  # drop rows that are all NaNs
 
 if picturesq:
-	fig, ax = plt.subplots(figsize=(16, (esttime*2.2)))
+	fig, ax = plt.subplots(figsize=(16, (esttime*2.5)))
 else:
 	fig, ax = plt.subplots(figsize=(16, esttime))
 sns.heatmap(df_pd, cmap="Purples", linewidths=0.2, linecolor='gray', vmax=absolute_max, ax=ax)
