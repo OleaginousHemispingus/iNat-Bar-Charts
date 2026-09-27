@@ -259,6 +259,8 @@ with st.expander("Extra Options (Pictures, Research grade, Life list, Annotation
 		invertq = st.checkbox("Without this annotation (e.g., if you select \"life stage: adult\" you get all results that are *not* adults)", on_change=reset)
 	else:
 		invertq = False
+
+	col1, col2 = st.columns(2)
 		
 	with col1:
 		fieldsq = st.text_input("Observations with field: ", on_change=reset)
