@@ -249,19 +249,21 @@ with st.expander("Extra Options (Pictures, Research grade, Life list, Annotation
 			annotationsvalues = ['---', 'Feather', 'Organism', 'Scat', 'Track', 'Bone', 'Molt', 'Gall', 'Egg', 'Hair', 'Leafmine', 'Construction']
 			annotationsvaldict = {'Feather': 23, 'Organism': 24, 'Scat': 25, 'Track': 26, 'Bone': 27, 'Molt': 28, 'Gall': 29, 'Egg': 30, 'Hair': 31, 'Leafmine': 32, 'Construction': 35}
 
-
-		fieldsq = st.text_input("Observations with field: ", on_change=reset)
 			
 	
 	
 	with col2:
 		annotationsvalueq = st.selectbox("Annotation value: ", options = annotationsvalues, on_change=reset)
-		fieldsvaluesq = st.text_input("Field value: ", on_change=reset)
 
 	if annotationsq != '---' and annotationsvalueq != '---':
 		invertq = st.checkbox("Without this annotation (e.g., if you select \"life stage: adult\" you get all results that are *not* adults)", on_change=reset)
 	else:
 		invertq = False
+		
+	with col1:
+		fieldsq = st.text_input("Observations with field: ", on_change=reset)
+	with col2:
+		fieldsvaluesq = st.text_input("Field value: ", on_change=reset)
 
 
 query = st.text_input("Enter a place (the format for a state is [State, Country code] and for a county is [County, Country code, State code]): ", placeholder="Examples: Colorado, US; Montgomery, US, MD", on_change=reset)
