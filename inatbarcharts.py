@@ -331,7 +331,7 @@ for place in res_place[0:min(14, len(res_place))]:
 	possibleplaces.append(place['id'])
 	possiblenames.append(place['display_name'])
 placedict = dict(zip(possiblenames, possibleplaces))
-with st.expander("Extra selection (if the API chooses the wrong taxon and/or place)"):
+with st.expander("Re-selection (if the API chooses the wrong taxon and/or place)"):
 	ourcommonname = st.selectbox("Taxon: ", options = possibletaxacommonnames, on_change=reset)
 	placename = st.selectbox("Place: ", options = possiblenames, on_change=reset)
 
