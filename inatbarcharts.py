@@ -749,22 +749,11 @@ with st.expander("Graph sliders"):
 		#maxqtex = int(maxqtex)
 
 		#currentlyhidden = int(st.session_state["slider"])
-		if numcouldhide > 0:
-			st.text_input("Hide top ___ results:", st.session_state["hidden_value"], key="hiddenq_text", on_change=update_from_text)
+		
 
 	with col2:
-		if provmax != 1:
-			maxq = st.slider("Maximum value:", provmin, provmax, (int(st.session_state["hidden_max"])), key="hidden_max_slider", on_change=max_from_slider)
-		else:
-			maxq = 1
-
 		if numcouldhide > 0:
-			hiddenq = st.slider("Hide top ___ results:", 0, numcouldhide, st.session_state["hidden_value"], key="hidden_slider", on_change=update_from_slider)
-		#hiddenq = st.slider("Hide top ___ results:", 0, numcouldhide, hiddennum, key="hiddenq")
-	if numcouldhide > 0:
-		st.session_state["hidden_value"] = hiddenq
-	else:
-		st.session_state["hidden_value"] = 0
+			st.text_input("Hide top ___ results:", st.session_state["hidden_value"], key="hiddenq_text", on_change=update_from_text)
 
 st.session_state["reset_actions"] = 0
 
